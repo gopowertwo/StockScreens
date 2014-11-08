@@ -8,6 +8,10 @@ except:
 import time
 import csv
 import os
+import sys
+
+from datetime import datetime
+
 
 stocks = ['GOOG', 'AAPL', 'MSFT', 'AMZN', 'EBAY', 'TSLA']
 directory = 'data/'
@@ -17,26 +21,37 @@ url = 'http://chartapi.finance.yahoo.com/instrument/1.0/%s/chartdata;type=quote;
 
 def pull_data(stock):
     try:
-        fileline = directory + stock + '.csv'
-        print(fileline)
+        print(str(time.strftime('%Y-%m-%d %H:%M:%S')))
+        print('Pulling: ' + stock)
+
+        filename = directory + stock + '.csv'
         url_stock = url % (stock, '5d')
 
         source = urllib2.urlopen(url_stock)
         cr = list(csv.reader(source))
 
-        save_file = open(fileline, 'w')  # TODO: Change to 'a'
+        try:
+            with open(filename) as f:
+                lines = f.readlines()
+            last = lines[-1].strip('\n').split(',')[0] \
+                if len(lines) > 0 else 0
+        except:
+            last = 0
 
-        for row in cr[1:]:
+        data = ""
+        for row in cr:
             if len(row) == 6 and 'values' not in row[0]:
-                line = ','.join(row) + '\n'
-                save_file.write(line)
+                if int(row[0]) > int(last):
+                    data += ','.join(row) + '\n'
 
-        print('Pulled', stock)
-        print('Sleeping...')
-        time.sleep(1)
+        with open(filename, 'a') as f:
+            f.write(data.strip('\n'))
+
+        print('Pulled: ' + stock)
+        time.sleep(5)
 
     except Exception, e:
-        print('Problem!', e)
+        print('Problem: %s' % e)
 
 
 def main():
@@ -44,8 +59,11 @@ def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    for company in stocks:
-        print('Pulling', company)
-        pull_data(company)
+    while True:
+        for company in stocks:
+            pull_data(company)
+            print('Sleeping... \n')
+        time.sleep(300)
 
-main()
+if __name__ == '__main__':
+    main()
