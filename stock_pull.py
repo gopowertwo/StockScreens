@@ -25,7 +25,7 @@ def pull_data(stock):
         print('Pulling: ' + stock)
 
         filename = directory + stock + '.csv'
-        url_stock = url % (stock, '5d')
+        url_stock = url % (stock, '1y')
 
         source = urllib2.urlopen(url_stock)
         cr = list(csv.reader(source))
@@ -62,7 +62,7 @@ def main():
     while True:
         for company in stocks:
             pull_data(company)
-            print('Sleeping... \n')
+        print('Sleeping... \n')
         time.sleep(300)
 
 if __name__ == '__main__':
